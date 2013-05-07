@@ -276,11 +276,4 @@ then
 fi
 #-------------------------------------------------------------------#
 
-
-#-------------------------------------------------------------------#
-#unused items
-#scoreRead_call=`cat call_scoreReads.sh`
-#echo $scoreRead_call
-#-------------------------------------------------------------------#
-############NOTE: NEED TO WRITE SCRIPT TO ELIMINATE PHYLUM ENTRIES < 80% CONFIDENCE 4.29.2013
 exit $?
