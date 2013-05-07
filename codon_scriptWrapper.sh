@@ -81,6 +81,21 @@ fi
 
 
 #-------------------------------------------------------------------#
+function scoreReads {
+echo "Do you want to classify the reads? (Y/N followed by [ENTER]:"
+read scoreRead_Response 
+
+if [ $scoreRead_Response -eq "y" ] || [ $scoreRead_Response -eq "Y" ] || [ $scoreRead_Response -eq "yes" ] || [ $scoreRead_Response -eq "Yes" ] 
+then
+  cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
+  parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
+  cd -
+fi
+}
+#-------------------------------------------------------------------#
+
+
+#-------------------------------------------------------------------#
 function makeDirectory {
 #If an output directory does not exist in working directory, make it.
 DIRECTORY=output
@@ -171,8 +186,8 @@ sortedPhylumFile="phylum_sorted_"$partial_dir".txt"
 export sortedPhylumFile
 #echo $sortedPhylumFile
 
-#command below assumes that the phylum will always be classified.
-awk '$1 ~ /^>/ {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
+#command below assumes that the phylum will always be classified. #NF is the number of fields
+awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
 #command below works only when bacteria is classified at each level (phylum-genus)
 #awk '$1 ~ /^>/  && NF == 17 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
 #awk '$1 ~ /^>/  && NF != 17 {print $1, $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $0}' $completeClassifiedFilePath #checking for line !=17 
@@ -216,16 +231,12 @@ python /data/erin/Ruti/TroisiemeCodon_Position/compare_phyla.py
 }
 #-------------------------------------------------------------------#
 
-##########FUNCTION CALLS###################
-#-------------------------------------------------------------------#
+#_-----------------FUNCTION CALLS-----------------------------------#
 SERVICE="scoreReads.pl"
 RESULT=`ps -A | sed -n /${SERVICE}/p`
 splitFiles #call splitFiles function
 dirpath=$PWD #copy name of working directory (containing split fasta files)
-cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
-parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
-cd -
-
+scoreReads
 makeDirectory
 moveFiles #114
 catFiles #138
