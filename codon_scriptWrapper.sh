@@ -81,32 +81,6 @@ fi
 
 
 #-------------------------------------------------------------------#
-function createScoreReadsCall {
-#Purpose of create_scoreReads_call: Creates file (call_scoreReads.sh) containing calls (6 in parallel) to scoreReads script
-#e.g. nohup ./scoreReads.pl fileName.fa & nohup ./scoreReads.pl filename2.fa & ....
-python /home/erin/Ruti/TroisiemeCodon_Position/create_scoreReads_call.py $fileName_noExt'_1.fa' $fileName_noExt'_2.fa' $fileName_noExt'_3.fa' $fileName_noExt'_4.fa' $fileName_noExt'_5.fa' $fileName_noExt'_6.fa' $dirpath
-}
-#-------------------------------------------------------------------#
-
-
-#-------------------------------------------------------------------#
-function scoreReads {
-rm /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/call_scoreReads.sh #Remove previous copies of call_scoreReads.sh from the PhymmBL directory
-chmod +x call_scoreReads.sh #Make the current call_scoreReads.sh file executable
-cp call_scoreReads.sh /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/. #Copy current call_scoreReads.sh file to PhymmBL directory
-cd /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL #Make working directory the PhymmBL directory
-SERVICE="scoreReads.pl"
-RESULT=`ps -A | sed -n /${SERVICE}/p`
-
-if [ "${RESULT:-null}" != null ]; then
-    sh /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/call_scoreReads.sh #Classify files by executing call_scoreReads.sh
-    cd -
-fi
-}
-#-------------------------------------------------------------------#
-
-
-#-------------------------------------------------------------------#
 function makeDirectory {
 #If an output directory does not exist in working directory, make it.
 DIRECTORY=output
@@ -248,32 +222,22 @@ SERVICE="scoreReads.pl"
 RESULT=`ps -A | sed -n /${SERVICE}/p`
 splitFiles #call splitFiles function
 dirpath=$PWD #copy name of working directory (containing split fasta files)
-createScoreReadsCall
-scoreReads
+cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
+parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
+cd -
 
-if [ "${RESULT:-null}" != null ]
-then
-  until [ "${RESULT:-null}" = null ]; do
-  echo "The ScoreReads.pl script is still running. No scripts may run until the classification process had ended. This script will self-check again in one hour."
-  sleep 1h
-  done    
-fi
-
-if [ "${RESULT:-null}" = null ]
-then
-     makeDirectory
-     moveFiles #114
-     catFiles #138
-     Classified_Troiseme_GC #154
-     outputFileName='classified_GC_'$fileName #get name of classified file
-     checkFileLength #172
-     awkCommand #191
-     uniquePhyla #212
-     comparePhyla
-     cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
-     rm /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/merged_phyla.txt
-     sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/phyla_comparison.sh
-fi
+makeDirectory
+moveFiles #114
+catFiles #138
+Classified_Troiseme_GC #154
+outputFileName='classified_GC_'$fileName #get name of classified file
+checkFileLength #172
+awkCommand #191
+uniquePhyla #212
+comparePhyla
+cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
+rm /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/merged_phyla.txt
+sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/phyla_comparison.sh
 #-------------------------------------------------------------------#
 
 exit $?
