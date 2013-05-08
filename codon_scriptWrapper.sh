@@ -120,7 +120,7 @@ partial_dir=${partial_dir:0:-7} # = Wegley/Porites_Astreoides/Phylum
 partial_dir=`echo ${partial_dir} | tr "/" _` # = Wegley/Porites_Astreoides/Phylum
 export partial_dir
 #echo $partial_dir #echo ${partial_dir:0:-7} | tr "/" _ # = Wegley/Porites_Astreoides/Phylum
-cp /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/. #Move all txt files from PhymmBL to output directory (in working directory)
+mv /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/. #Move all txt files from PhymmBL to output directory (in working directory)
 }
 #-------------------------------------------------------------------#
 
