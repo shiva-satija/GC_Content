@@ -85,7 +85,7 @@ function scoreReads {
 echo "Do you want to classify the reads? (Y/N followed by [ENTER]:"
 read scoreRead_Response 
 
-if [ $scoreRead_Response -eq "y" ] || [ $scoreRead_Response -eq "Y" ] || [ $scoreRead_Response -eq "yes" ] || [ $scoreRead_Response -eq "Yes" ] 
+if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then
   cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
   parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
