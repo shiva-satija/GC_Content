@@ -108,19 +108,63 @@ fi
 
 #-------------------------------------------------------------------#
 function moveFiles {
-declare -a resultFiles=(`ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt`) 
-cp ${resultFiles[@]} .  
-lengthB=$(expr length ${resultFiles[1]})
-lengthA=$(expr length "/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/")
-fileName2=${resultFiles[1]:lengthA:lengthB}
-export fileName2
-lengthF=$(expr length $dirpath)
-partial_dir=${dirpath:40:$lengthF} #results.03.phymmBL__home_erin_Ruti_TroisiemeCodon_Position_
-partial_dir=${partial_dir:0:-7} # = Wegley/Porites_Astreoides/Phylum
-partial_dir=`echo ${partial_dir} | tr "/" _` # = Wegley/Porites_Astreoides/Phylum
-export partial_dir
-#echo $partial_dir #echo ${partial_dir:0:-7} | tr "/" _ # = Wegley/Porites_Astreoides/Phylum
-mv /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/. #Move all txt files from PhymmBL to output directory (in working directory)
+#pretty ugly function. multiple if statement as if [ **"$TEXTfiles" != "0"** ] will fail if there are no files present
+#but it will run properly if it is the first time running the script.
+
+#if i need to re-run the script, if [ -e /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt ] will 
+#fail if there are more than 1 files present (-e takes 1 variable only). When re-running this script, the files
+#will have been moved (hence the else statement
+
+#having both if statements will guarantee an error, but one if command will run and the entire script will continue
+#running if there is a error.
+
+#if multiple result files exist
+TEXTfiles=$(ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt 2> /dev/null | wc -l)
+if [ **"$TEXTfiles" != "0"** ]
+then 
+  declare -a resultFiles=(`ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt`) 
+  mv ${resultFiles[@]} .  
+  lengthB=$(expr length ${resultFiles[1]})
+  lengthA=$(expr length "/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/")
+  fileName2=${resultFiles[1]:lengthA:lengthB}
+  export fileName2
+  lengthF=$(expr length $dirpath)
+  partial_dir=${dirpath:40:$lengthF} #results.03.phymmBL__home_erin_Ruti_TroisiemeCodon_Position_
+  partial_dir=${partial_dir:0:-7} # = Wegley/Porites_Astreoides/Phylum
+  partial_dir=`echo ${partial_dir} | tr "/" _` # = Wegley/Porites_Astreoides/Phylum
+  export partial_dir
+fi
+
+#if there are zero result text file
+if [ -e /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt ]
+then 
+  declare -a resultFiles=(`ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt`) 
+  mv ${resultFiles[@]} .  
+  lengthB=$(expr length ${resultFiles[1]})
+  lengthA=$(expr length "/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/")
+  fileName2=${resultFiles[1]:lengthA:lengthB}
+  export fileName2
+  lengthF=$(expr length $dirpath)
+  partial_dir=${dirpath:40:$lengthF} #results.03.phymmBL__home_erin_Ruti_TroisiemeCodon_Position_
+  partial_dir=${partial_dir:0:-7} # = Wegley/Porites_Astreoides/Phylum
+  partial_dir=`echo ${partial_dir} | tr "/" _` # = Wegley/Porites_Astreoides/Phylum
+  export partial_dir
+else
+  declare -a resultFiles=(`ls results.03.phymmBL*.txt`) 
+  fileName2=$resultFiles
+  export fileName2
+fi
+
+TEXTfiles=$(ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt 2> /dev/null | wc -l)
+if [ **"$TEXTfiles" != "0"** ]
+then
+  mv `/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.` #Move all txt files from PhymmBL to output directory (in working directory)
+fi
+
+if [ -e /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt ]
+then 
+  mv `/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.` #Move all txt files from PhymmBL to output directory (in working directory)
+fi
 }
 #-------------------------------------------------------------------#
 
@@ -133,7 +177,8 @@ function catFiles {
 #	i. Keep initial line but remove dups of QUERY_ID       BEST_MATCH      SCORE   GENUS   GENUS_CONF      FAMILY  FAMILY_CONF     ORDER   ORDER_CON       CLASS   CLASS_CONF      PHYLUM  PHYLUM_CONF     GC_1    GC_2    GC_3    GC_overall
 
 base_fileName=${fileName2:0:-9}
-export basefileName
+export base_fileName
+
 cat $base_fileName'_1_fa.txt' <(sed 1d $base_fileName'_2_fa.txt') <(sed 1d $base_fileName'_3_fa.txt') <(sed 1d $base_fileName'_4_fa.txt') <(sed 1d $base_fileName'_5_fa.txt') <(sed 1d $base_fileName'_6_fa.txt') > $base_fileName'_fa.txt'
 }
 #-------------------------------------------------------------------#
@@ -187,7 +232,8 @@ export sortedPhylumFile
 #echo $sortedPhylumFile
 
 #command below assumes that the phylum will always be classified. #NF is the number of fields
-awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
+#echo "Phylum   Confidence     GC_1 GC_2 GC_3 GC_overall     ID" > $sortedPHylumFile
+awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $1}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
 #command below works only when bacteria is classified at each level (phylum-genus)
 #awk '$1 ~ /^>/  && NF == 17 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
 #awk '$1 ~ /^>/  && NF != 17 {print $1, $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $0}' $completeClassifiedFilePath #checking for line !=17 
@@ -232,8 +278,6 @@ python /data/erin/Ruti/TroisiemeCodon_Position/compare_phyla.py
 #-------------------------------------------------------------------#
 
 #_-----------------FUNCTION CALLS-----------------------------------#
-SERVICE="scoreReads.pl"
-RESULT=`ps -A | sed -n /${SERVICE}/p`
 splitFiles #call splitFiles function
 dirpath=$PWD #copy name of working directory (containing split fasta files)
 scoreReads
