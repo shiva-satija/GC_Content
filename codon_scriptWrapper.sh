@@ -227,7 +227,7 @@ function awkCommand {
 #Purpose: takes classified file & extracts lines containing 17 columns (not all things get classified at each level)
 # & copies the phylum name and the GC into pipeline which is sorted and copied into sorted file. 
 completeClassifiedFilePath=$dirPath$outputFileName
-sortedPhylumFile="phylum_sorted_"$partial_dir".txt"
+sortedPhylumFile="phylum_sorted_"$partial_dir"_"$fileName_noExt".txt"
 export sortedPhylumFile
 #echo $sortedPhylumFile
 
@@ -293,6 +293,8 @@ comparePhyla
 cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
 rm /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/merged_phyla.txt
 sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/phyla_comparison.sh
+mv /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.
+mv results.03.phymmBL*.txt output/. #This is to ensure that when more than when more than one fasta file in the same directory is to be analyzed, the correct name is copied. 
 #-------------------------------------------------------------------#
 
 exit $?
