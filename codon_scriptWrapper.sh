@@ -5,18 +5,18 @@ function splitFiles {
 
 # splitFiles will 
 #1. Accept a user input file (e.g. fileName)
-#2. Split the file into 6 parts where the number of lines in each part is equally divisible by 2. 
-#3. Rename the files as fileName_1, fileName_2....
+#2  Accept a user input for the number of processors to use (e.g. processors)
+#2. Split the file into smaller sizes based on number of processors used and where the number of lines in each part is equally divisible by 2. 
 
 #echo "Enter the name of the fasta file to split into 6 parts (followed by [ENTER]):"
 #read fileName #e.g. 4502935.3.fa
 fileName="test.fa"
 echo $fileName
+export fileName #this makes it available to other functions
 echo "How many processors do you want to use? (followed by [ENTER])?:"
 read processors
-export processors
+export processors #this makes it available to other functions
 
-export fileName
 fileName_noExt=${fileName:0:-3} #e.g. 4502935.3
 export fileName_noExt
 
@@ -44,29 +44,22 @@ then
 	let Remainder=$((LineNumber/processors))
      split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
 fi
-
-#for i in $(eval echo {0..$processors})
-#do
-#   #echo $fileName_noExt'_'${numArray[i]}'.fa'
-#   fileLength=$(wc -l $fileName_noExt'_'${numArray[i]}'.fa')
-# done
 }
 #-------------------------------------------------------------------#
 
 
 #-------------------------------------------------------------------#
 function scoreReads {
+#scoreReads will
+#    change the working directory to /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/
+#    using seq, it will call the scoreReads.pl script with the appropriate file name
 echo "Do you want to classify the reads? (Y/N followed by [ENTER]:"
 read scoreRead_Response 
 
 if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then
-  #python call_PhymmBL.py $processors $fileName_noExt 
-  #cp call_PhymmBL.sh /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/.
   cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
   seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
-  #sh call_PhymmBL.sh 
-  #parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
   cd -
 fi
 }
@@ -262,7 +255,7 @@ numArray=('00' '01' '02' '03' '04' '05' '06' '07' '08' '09' '10' '11' '12' '13' 
 
 #_-----------------FUNCTION CALLS-----------------------------------#
 splitFiles #call splitFiles function
-#dirpath=$PWD #copy name of working directory (containing split fasta files)
+dirpath=$PWD #copy name of working directory (containing split fasta files)
 #scoreReads
 #makeDirectory
 #moveFiles #114
