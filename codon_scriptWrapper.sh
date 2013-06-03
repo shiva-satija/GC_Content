@@ -8,74 +8,48 @@ function splitFiles {
 #2. Split the file into 6 parts where the number of lines in each part is equally divisible by 2. 
 #3. Rename the files as fileName_1, fileName_2....
 
-echo "Enter the name of the fasta file to split into 6 parts (followed by [ENTER]):"
-read fileName
+#echo "Enter the name of the fasta file to split into 6 parts (followed by [ENTER]):"
+#read fileName #e.g. 4502935.3.fa
+fileName="test.fa"
+echo $fileName
+echo "How many processors do you want to use? (followed by [ENTER])?:"
+read processors
+export processors
 
-#echo $fileName
 export fileName
-fileName_noExt=${fileName:0:-3}
-#echo $fileName_noExt
+fileName_noExt=${fileName:0:-3} #e.g. 4502935.3
 export fileName_noExt
 
 LineNumber=$(wc -l < "$fileName")
-#echo "LineNumber = $LineNumber"
 
+divider=2
 counter=0
-let Remainder=LineNumber/6
-let Modulus_six=LineNumber%6
-let Modulus_two=Remainder%2
+let Remainder=$((LineNumber/processors))
+let Modulus_processor=$((LineNumber%processors))
+let Modulus_two=$((Remainder%divider))
 
-if [ $Modulus_six -eq 0 ] && [ $Modulus_two -eq 0 ]
+if [ $Modulus_processor -eq 0 ] && [ $Modulus_two -eq 0 ]
 then
-	split -l $Remainder $fileName $fileName_noExt'_'
+     split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
 fi
 
-if [ $((LineNumber%6)) -ne 0 ] || [[ $((LineNumber%6)) -eq 0 && $((Modulus_two)) -ne 0 ]]
+if [ $((LineNumber%processors)) -ne 0 ] || [[ $((LineNumber%processors)) -eq 0 && $((Modulus_two)) -ne 0 ]]
 then
 	let counter+=1
-	until [ $((LineNumber%6)) -eq 0 ] && [ $(((LineNumber/6)%2)) -eq 0 ]; do
+	until [ $((LineNumber%processors)) -eq 0 ] && [ $(((LineNumber/processors)%divider)) -eq 0 ]; do
 		let counter=counter
 		let LineNumber=LineNumber+counter
 	done
 	
-	let Remainder=LineNumber/6
-	split -l $Remainder $fileName $fileName_noExt'_'
+	let Remainder=$((LineNumber/processors))
+     split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
 fi
 
-#echo "LineNumber = $LineNumber"
-mv $fileName_noExt'_aa' $fileName_noExt'_1.fa'
-mv $fileName_noExt'_ab' $fileName_noExt'_2.fa'
-mv $fileName_noExt'_ac' $fileName_noExt'_3.fa'
-mv $fileName_noExt'_ad' $fileName_noExt'_4.fa'
-mv $fileName_noExt'_ae' $fileName_noExt'_5.fa'
-mv $fileName_noExt'_af' $fileName_noExt'_6.fa'
-
-len=$(wc -l < $fileName)
-len1=$(wc -l < $fileName_noExt'_1.fa')
-len2=$(wc -l < $fileName_noExt'_2.fa')
-len3=$(wc -l < $fileName_noExt'_3.fa')
-len4=$(wc -l < $fileName_noExt'_4.fa')
-len5=$(wc -l < $fileName_noExt'_5.fa')
-len6=$(wc -l < $fileName_noExt'_6.fa')
-lenSplit=$((len1 + $len2 + $len3 + $len4 + $len5 + $len6))
-
-#wc -l $fileName_noExt'_1.fa'
-#wc -l $fileName_noExt'_2.fa'
-#wc -l $fileName_noExt'_3.fa'
-#wc -l $fileName_noExt'_4.fa'
-#wc -l $fileName_noExt'_5.fa'
-#wc -l $fileName_noExt'_6.fa'
-#wc -l $fileName
-
-if [ $lenSplit -ne $len ]
-#if [ $lenSplit -eq $len ]
-then
-  #echo "The total number of lines in the split file are equal to the number of lines in the orginal file. :)"
-#else
-  echo "There is a problem with the number of lines in the split files. Try again. :("
-  exit
-fi
-#ls -lah
+#for i in $(eval echo {0..$processors})
+#do
+#   #echo $fileName_noExt'_'${numArray[i]}'.fa'
+#   fileLength=$(wc -l $fileName_noExt'_'${numArray[i]}'.fa')
+# done
 }
 #-------------------------------------------------------------------#
 
@@ -87,8 +61,12 @@ read scoreRead_Response
 
 if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then
+  #python call_PhymmBL.py $processors $fileName_noExt 
+  #cp call_PhymmBL.sh /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/.
   cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
-  parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
+  seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
+  #sh call_PhymmBL.sh 
+  #parallel ./scoreReads.pl ::: $dirpath/$fileName_noExt'_1.fa' $dirpath/$fileName_noExt'_2.fa' $dirpath/$fileName_noExt'_3.fa' $dirpath/$fileName_noExt'_4.fa' $dirpath/$fileName_noExt'_5.fa' $dirpath/$fileName_noExt'_6.fa' 
   cd -
 fi
 }
@@ -234,6 +212,8 @@ export sortedPhylumFile
 #command below assumes that the phylum will always be classified. #NF is the number of fields
 #echo "Phylum   Confidence     GC_1 GC_2 GC_3 GC_overall     ID" > $sortedPHylumFile
 awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $1}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
+#awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print; for(i=1; i <2; i++) {getline; print} i=1}' $completeClassifiedFilePath | sort > /home/erin/Ruti/TroisiemeCodon_Position/80Classified/"80_"$completeClassifiedFilePath
+
 #command below works only when bacteria is classified at each level (phylum-genus)
 #awk '$1 ~ /^>/  && NF == 17 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
 #awk '$1 ~ /^>/  && NF != 17 {print $1, $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $0}' $completeClassifiedFilePath #checking for line !=17 
@@ -277,24 +257,27 @@ python /data/erin/Ruti/TroisiemeCodon_Position/compare_phyla.py
 }
 #-------------------------------------------------------------------#
 
+numArray=('00' '01' '02' '03' '04' '05' '06' '07' '08' '09' '10' '11' '12' '13' '14' '15' '16' '17' '18' '19' '20' '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '31' '32' '33' '34' '35' '36' '37' '38' '39' '40' '41' '42' '43' '44' '45' '46' '47' '48' '49' '50' '51' '52' '53' '54' '55' '56' '57' '58' '59' '60' '61' '62' '63')
+#echo ${numArray[1]}
+
 #_-----------------FUNCTION CALLS-----------------------------------#
 splitFiles #call splitFiles function
-dirpath=$PWD #copy name of working directory (containing split fasta files)
-scoreReads
-makeDirectory
-moveFiles #114
-catFiles #138
-Classified_Troiseme_GC #154
-outputFileName='classified_GC_'$fileName #get name of classified file
-checkFileLength #172
-awkCommand #191
-uniquePhyla #212
-comparePhyla
-cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
-rm /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/merged_phyla.txt
-sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/phyla_comparison.sh
-mv /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.
-mv results.03.phymmBL*.txt output/. #This is to ensure that when more than when more than one fasta file in the same directory is to be analyzed, the correct name is copied. 
+#dirpath=$PWD #copy name of working directory (containing split fasta files)
+#scoreReads
+#makeDirectory
+#moveFiles #114
+#catFiles #138
+#Classified_Troiseme_GC #154
+#outputFileName='classified_GC_'$fileName #get name of classified file
+#checkFileLength #172
+#awkCommand #191
+#uniquePhyla #212
+#comparePhyla
+#cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
+#rm /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/merged_phyla.txt
+#sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/phyla_comparison.sh
+#mv /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.
+#mv results.03.phymmBL*.txt output/. #This is to ensure that when more than when more than one fasta file in the same directory is to be analyzed, the correct name is copied. 
 #-------------------------------------------------------------------#
 
 exit $?
