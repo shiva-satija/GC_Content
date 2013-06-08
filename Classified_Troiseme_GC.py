@@ -33,11 +33,16 @@ PhymmBLresultsFile = arguments[2] #This is the results_03_PhymmBL... file
 PhymmBLresultsFile = PhymmBLresultsFile.replace(' ', '')
 mergedFile = arguments[3] #This will be the name of the output file
 
+#with open(fname) as f:
+#    content = f.readlines()
+
 inputResults = open(PhymmBLresultsFile, 'r')
 resultLines = inputResults.readlines() #readlines() reads in entire file at once.
 resultArray = []
+resultLineArray = []
 
 for results in resultLines:
+	resultLineArray.append(results.replace('\n', ''))
 	tempResults = results.split('\t',1)
 	results = tempResults[0]
 	resultArray.append(results)
@@ -72,6 +77,8 @@ for i in range(0, len(fastaLines) - 1): #from 0 to the number of lines in the fi
 		gc_3 = round(GC123(fastaLines[i+1])[3], 2)
 		gc_overall = round(GC(fastaLines[i+1]), 2)
 		outputFile.write('>' + resultLines[count].strip('\n')  + '\t' + str(gc_1) + '\t' + str(gc_2) + '\t' + str(gc_3) + '\t' + str(gc_overall) + '\n')
-
+		outputFile.write(fastaLines[i+1] + '\n')
+		resultArray.pop(count)
+		resultLineArray.pop(count)
 inputFasta.close()
 outputFile.close()
