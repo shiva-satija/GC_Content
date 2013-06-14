@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 #-------------------------------------------------------------------#
 function splitFiles {
@@ -8,10 +8,9 @@ function splitFiles {
 #2  Accept a user input for the number of processors to use (e.g. processors)
 #2. Split the file into smaller sizes based on number of processors used and where the number of lines in each part is equally divisible by 2. 
 
-#echo "Enter the name of the fasta file to split into 6 parts (followed by [ENTER]):"
-#read fileName #e.g. 4502935.3.fa
-fileName="test.fa"
-echo $fileName
+echo "Enter the name of the fasta file to split into parts (followed by [ENTER]):"
+read fileName #e.g. 4502935.3.fa
+#echo $fileName
 export fileName #this makes it available to other functions
 echo "How many processors do you want to use? (followed by [ENTER])?:"
 read processors
@@ -58,9 +57,44 @@ read scoreRead_Response
 
 if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then
-  cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
-  seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
-  cd -
+
+	cd $PhymmBL_directory 
+
+	echo "What type of sequencing method was used?"
+	echo -n '
+	454 = 0
+	Illumina = 1
+	Sanger = 2
+	Other = 3'
+
+	read sequencing_number
+	sequencing_type="sequencing_type"
+
+	while [ "$sequencing_number" != 0 ] or [ "$sequencing_number" != 1 ] or [ "$sequencing_number" != 2 ] or [ "$sequencing_number" != 3 ] ; do 
+		echo "What type of sequencing method was used?"
+		echo -n '
+		454 = 0
+		Illumina = 1
+		Sanger = 2
+		Other = 3'
+	read sequencing_number
+	done
+
+	if [ "$sequencing_number" == 0 ]; then
+		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
+		sequencing_type="454"
+	elif [ "$sequencing_number" == 1 ]; then
+		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
+		sequencing_type="illumina"
+	elif [ "$sequencing_number" == 2 ]; then
+		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
+		sequencing_type="Sanger"
+	elif [ "$sequencing_number" == 3 ]; then
+		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
+		sequencing_type="other"
+	fi
+
+	cd -
 fi
 }
 #-------------------------------------------------------------------#
@@ -79,63 +113,17 @@ fi
 
 #-------------------------------------------------------------------#
 function moveFiles {
-#pretty ugly function. multiple if statement as if [ **"$TEXTfiles" != "0"** ] will fail if there are no files present
-#but it will run properly if it is the first time running the script.
+#Purpose: Move specific text files from PhymmBL dir to output directory in current working 
+#    directory. Moved files are specific to files in working directory.
 
-#if i need to re-run the script, if [ -e /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt ] will 
-#fail if there are more than 1 files present (-e takes 1 variable only). When re-running this script, the files
-#will have been moved (hence the else statement
+#python /data/erin/Ruti/TroisiemeCodon_Position/moveResultFiles.py $PWD $PhymmBL_directory $Environment_directory
 
-#having both if statements will guarantee an error, but one if command will run and the entire script will continue
-#running if there is a error.
-
-#if multiple result files exist
-TEXTfiles=$(ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt 2> /dev/null | wc -l)
-if [ **"$TEXTfiles" != "0"** ]
-then 
-  declare -a resultFiles=(`ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt`) 
-  mv ${resultFiles[@]} .  
-  lengthB=$(expr length ${resultFiles[1]})
-  lengthA=$(expr length "/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/")
-  fileName2=${resultFiles[1]:lengthA:lengthB}
-  export fileName2
-  lengthF=$(expr length $dirpath)
-  partial_dir=${dirpath:40:$lengthF} #results.03.phymmBL__home_erin_Ruti_TroisiemeCodon_Position_
-  partial_dir=${partial_dir:0:-7} # = Wegley/Porites_Astreoides/Phylum
-  partial_dir=`echo ${partial_dir} | tr "/" _` # = Wegley/Porites_Astreoides/Phylum
-  export partial_dir
-fi
-
-#if there are zero result text file
-if [ -e /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt ]
-then 
-  declare -a resultFiles=(`ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/results.03.phymmBL*.txt`) 
-  mv ${resultFiles[@]} .  
-  lengthB=$(expr length ${resultFiles[1]})
-  lengthA=$(expr length "/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/")
-  fileName2=${resultFiles[1]:lengthA:lengthB}
-  export fileName2
-  lengthF=$(expr length $dirpath)
-  partial_dir=${dirpath:40:$lengthF} #results.03.phymmBL__home_erin_Ruti_TroisiemeCodon_Position_
-  partial_dir=${partial_dir:0:-7} # = Wegley/Porites_Astreoides/Phylum
-  partial_dir=`echo ${partial_dir} | tr "/" _` # = Wegley/Porites_Astreoides/Phylum
-  export partial_dir
-else
-  declare -a resultFiles=(`ls results.03.phymmBL*.txt`) 
-  fileName2=$resultFiles
-  export fileName2
-fi
-
-TEXTfiles=$(ls /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt 2> /dev/null | wc -l)
-if [ **"$TEXTfiles" != "0"** ]
-then
-  mv `/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.` #Move all txt files from PhymmBL to output directory (in working directory)
-fi
-
-if [ -e /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt ]
-then 
-  mv `/home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.` #Move all txt files from PhymmBL to output directory (in working directory)
-fi
+declare -a resultFiles=(`ls $outputDirectory/$resultsPrefix`) 
+cp ${resultFiles[@]} .  
+declare -a resultFiles=(`ls $PWD/$resultsPrefix`) 
+fileName2=$resultFiles[2]
+#echo "fileName2 is $fileName2"
+export fileName2
 }
 #-------------------------------------------------------------------#
 
@@ -147,10 +135,19 @@ function catFiles {
 #2. Cat all the results files together 
 #	i. Keep initial line but remove dups of QUERY_ID       BEST_MATCH      SCORE   GENUS   GENUS_CONF      FAMILY  FAMILY_CONF     ORDER   ORDER_CON       CLASS   CLASS_CONF      PHYLUM  PHYLUM_CONF     GC_1    GC_2    GC_3    GC_overall
 
-base_fileName=${fileName2:0:-9}
+lengthA=$(expr length $PWD) 
+#base_fileName=${fileName2:$lengthA:-12} #this needs to be to 12 when there is file_1 rather than file_01 
+base_fileName=${fileName2:0:-11}
 export base_fileName
 
-cat $base_fileName'_1_fa.txt' <(sed 1d $base_fileName'_2_fa.txt') <(sed 1d $base_fileName'_3_fa.txt') <(sed 1d $base_fileName'_4_fa.txt') <(sed 1d $base_fileName'_5_fa.txt') <(sed 1d $base_fileName'_6_fa.txt') > $base_fileName'_fa.txt'
+echo "QUERY_ID  BEST_MATCH     SCORE     GENUS     GENUS_CONF     FAMILY    FAMILY_CONF    ORDER     ORDER_CONF     CLASS     CLASS_CONF     PHYLUM    PHYLUM_CON" > $base_fileName'fa.txt'
+
+#for i in `seq -w 0 $(($processors - 1))`; do 
+#for i in `seq -w 1 $processors `; do 
+for i in `seq -w 1 $(($processors - 0))`; do 
+	sed 1d $base_fileName$i'_fa.txt' >> $base_fileName'fa.txt' 
+done;
+#cat $base_fileName'1_fa.txt' <(sed 1d $base_fileName'2_fa.txt') <(sed 1d $base_fileName'3_fa.txt') <(sed 1d $base_fileName'4_fa.txt') <(sed 1d $base_fileName'5_fa.txt') <(sed 1d $base_fileName'6_fa.txt') > $base_fileName'fa.txt'
 }
 #-------------------------------------------------------------------#
 
@@ -169,7 +166,9 @@ function Classified_Troiseme_GC {
 #        iii. concatenate info to end of txt file (tab delimated form)
 #        iv. concatenate sequence of SEQ record to end of text fi
 
-python /data/erin/Ruti/TroisiemeCodon_Position/Classified_Troiseme_GC.py $fileName $base_fileName'_fa.txt'
+#python /data/erin/Ruti/TroisiemeCodon_Position/Classified_Troiseme_GC.py $fileName $base_fileName'fa.txt' $outputFileName
+python $scriptPathway/Classified_Troiseme_GC.py $fileName $base_fileName'fa.txt' $outputFileName
+#python /data/erin/Ruti/TroisiemeCodon_Position/Classified_Troiseme_GC.py $fileName $outputFileName
 }
 #-------------------------------------------------------------------#
 
@@ -177,7 +176,7 @@ python /data/erin/Ruti/TroisiemeCodon_Position/Classified_Troiseme_GC.py $fileNa
 #-------------------------------------------------------------------#
 function checkFileLength {
 #verify # of lines in classified_GC.. file is 1 (ONE) greater than
-#original unsplit fasta file
+#original unsplit fasta file (there is an initial & additional header file in classified_GC...
 
 outputLen=`wc -l < $outputFileName`
 inputLen=`wc -l < $fileName`
@@ -205,14 +204,13 @@ export sortedPhylumFile
 #command below assumes that the phylum will always be classified. #NF is the number of fields
 #echo "Phylum   Confidence     GC_1 GC_2 GC_3 GC_overall     ID" > $sortedPHylumFile
 awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $1}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
-#awk '$1 ~ /^>/  && $(NF - 4) >= 0.8 {print; for(i=1; i <2; i++) {getline; print} i=1}' $completeClassifiedFilePath | sort > /home/erin/Ruti/TroisiemeCodon_Position/80Classified/"80_"$completeClassifiedFilePath
 
 #command below works only when bacteria is classified at each level (phylum-genus)
 #awk '$1 ~ /^>/  && NF == 17 {print $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF}' $completeClassifiedFilePath | sort > $sortedPhylumFile 
-#awk '$1 ~ /^>/  && NF != 17 {print $1, $(NF - 5), $(NF - 4), $(NF - 3), $(NF - 2), $(NF - 1), $NF, $0}' $completeClassifiedFilePath #checking for line !=17 
 awk '$1 ~ /^[A-Z]/  {print $0}' $sortedPhylumFile > tempFile.txt #This will copy lines that start with a letter into tempFile
 mv tempFile.txt $sortedPhylumFile
-cp $sortedPhylumFile /data/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/. 
+#cp $sortedPhylumFile /data/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/. 
+cp $sortedPhylumFile $scriptPathway/Sorted_Phylum/. 
 }
 #-------------------------------------------------------------------#
 
@@ -250,23 +248,26 @@ python /data/erin/Ruti/TroisiemeCodon_Position/compare_phyla.py
 }
 #-------------------------------------------------------------------#
 
-numArray=('00' '01' '02' '03' '04' '05' '06' '07' '08' '09' '10' '11' '12' '13' '14' '15' '16' '17' '18' '19' '20' '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '31' '32' '33' '34' '35' '36' '37' '38' '39' '40' '41' '42' '43' '44' '45' '46' '47' '48' '49' '50' '51' '52' '53' '54' '55' '56' '57' '58' '59' '60' '61' '62' '63')
-#echo ${numArray[1]}
-
-#_-----------------FUNCTION CALLS-----------------------------------#
-splitFiles #call splitFiles function
+#------------------VARIABLE DEFINITIONS & FUNCTION CALLS-----------------------------------#
 dirpath=$PWD #copy name of working directory (containing split fasta files)
-#scoreReads
-#makeDirectory
-#moveFiles #114
-#catFiles #138
-#Classified_Troiseme_GC #154
-#outputFileName='classified_GC_'$fileName #get name of classified file
-#checkFileLength #172
-#awkCommand #191
-#uniquePhyla #212
-#comparePhyla
-#cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
+outputDirectory=$PWD"/output"
+PhymmBL_directory="/data/erin/Ruti/TroisiemeCodon_Position/PhymmBL"
+Environment_directory="/data/erin/Ruti/TroisiemeCodon_Position/ENVIRONMENTS/"
+resultsPrefix="results.03.phymmBL*.txt"
+scriptPathway="/data/erin/Ruti/TroisiemeCodon_Position"
+splitFiles
+outputFileName='classified_GC_'$fileName #get name of classified file
+scoreReads
+makeDirectory
+moveFiles 
+catFiles 
+Classified_Troiseme_GC 
+checkFileLength 
+awkCommand
+uniquePhyla 
+comparePhyla
+cp phyla_comparison.sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/.
+
 #rm /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/merged_phyla.txt
 #sh /home/erin/Ruti/TroisiemeCodon_Position/Sorted_Phylum/phyla_comparison.sh
 #mv /home/erin/Ruti/TroisiemeCodon_Position/PhymmBL/*.txt output/.
