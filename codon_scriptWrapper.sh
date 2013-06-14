@@ -57,44 +57,10 @@ read scoreRead_Response
 
 if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then
-
-	cd $PhymmBL_directory 
-
-	echo "What type of sequencing method was used?"
-	echo -n '
-	454 = 0
-	Illumina = 1
-	Sanger = 2
-	Other = 3'
-
-	read sequencing_number
-	sequencing_type="sequencing_type"
-
-	while [ "$sequencing_number" != 0 ] or [ "$sequencing_number" != 1 ] or [ "$sequencing_number" != 2 ] or [ "$sequencing_number" != 3 ] ; do 
-		echo "What type of sequencing method was used?"
-		echo -n '
-		454 = 0
-		Illumina = 1
-		Sanger = 2
-		Other = 3'
-	read sequencing_number
-	done
-
-	if [ "$sequencing_number" == 0 ]; then
-		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
-		sequencing_type="454"
-	elif [ "$sequencing_number" == 1 ]; then
-		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
-		sequencing_type="illumina"
-	elif [ "$sequencing_number" == 2 ]; then
-		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
-		sequencing_type="Sanger"
-	elif [ "$sequencing_number" == 3 ]; then
-		seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
-		sequencing_type="other"
-	fi
-
-	cd -
+  #cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
+  cd $PhymmBL_directory 
+  seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
+  cd -
 fi
 }
 #-------------------------------------------------------------------#
