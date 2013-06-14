@@ -57,7 +57,6 @@ read scoreRead_Response
 
 if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then
-  #cd /data/erin/Ruti/TroisiemeCodon_Position/PhymmBL/ 
   cd $PhymmBL_directory 
   seq -w 0 $(($processors-1)) | parallel ./scoreReads.pl $dirpath/$fileName_noExt'_'{}'.fa'
   cd -
@@ -122,26 +121,14 @@ done;
 function Classified_Troiseme_GC {
 #Purpose: To merge classified sequences file to original fasta file into one while calculating the GC% from the 1st, 2nd, and 3rd position for sequences as well as the overal gc content. Data is saved as fasta file.
 
-#Steps:
-#1. Create text file (write mode)
-#2. Loop through directory to make list of all pertinant files 
-#3. Loop through all *.gb files
-#        i. Open GenBank files (read mode)
-#        ii. extract pertinent info from each SEQ record
-#                a. Use taxID to generate taxonomic assignment (separate module) avoids naming inconsistency found in genbank files
-#        iii. concatenate info to end of txt file (tab delimated form)
-#        iv. concatenate sequence of SEQ record to end of text fi
-
-#python /data/erin/Ruti/TroisiemeCodon_Position/Classified_Troiseme_GC.py $fileName $base_fileName'fa.txt' $outputFileName
 python $scriptPathway/Classified_Troiseme_GC.py $fileName $base_fileName'fa.txt' $outputFileName
-#python /data/erin/Ruti/TroisiemeCodon_Position/Classified_Troiseme_GC.py $fileName $outputFileName
 }
 #-------------------------------------------------------------------#
 
 
 #-------------------------------------------------------------------#
 function checkFileLength {
-#verify # of lines in classified_GC.. file is 1 (ONE) greater than
+#Purpse: Verify the number of lines in classified_GC.. file is 1 (ONE) greater than
 #original unsplit fasta file (there is an initial & additional header file in classified_GC...
 
 outputLen=`wc -l < $outputFileName`
