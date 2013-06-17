@@ -21,7 +21,6 @@ results.02.blast__home_...fileName_noExt
 results.03.phymmBL__home_...fileName_noExt
 tempRev__home_...fileName_noExt
 tempRev__home_...fileName_noExt
-
 '''
 
 import os
@@ -54,15 +53,7 @@ results2 = arguments[7]
 results3 = arguments[8]
 tempRev = arguments[9]
 
-infiles = []
-outfiles = []
-
 for infile in glob.glob(os.path.join(path, '*.txt') ): #file extension type
-	infiles.append(infile)
 	if infile.startswith(errFile) or infile.startswith(rawBlastOutput) or infile.startswith(rawPhymmOutput) or infile.startswith(results1) or infile.startswith(results2) or infile.startswith(results3) or infile.startswith(tempRev):
-		#newfile = infile.replace(environmentDirectory_prefix, '')
 		newfile = infile.replace(path, '')
-		#newfile = newfile.replace(scoreRead_prefix, '')
-		#outfiles.append(newfile)
-		#print newfile
 		os.rename(infile, 'output/'+ newfile)
