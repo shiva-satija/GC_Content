@@ -20,42 +20,10 @@ def removeInput(fileLine, searchWord): #strip word (searchWord) from file (fileL
 	fileLine = fileLine.replace('\n', '')
 	return fileLine
 
-#####Project
-project_name = ''
-project_description = ''
-project_sampleFeature = ''
-project_sampleBiome= ''
-project_organization = ''
-project_organization_url = ''
-project_PI_firstName = ''
-project_PI_lastName = ''
-project_PI_email = ''
-project_PI_organization_url = ''
-project_NCBI = ''
-
-####Sample
-project_collectionDate = ''
-project_collectionTimeZone = ''
-project_sampleSize = ''
-project_latitude = ''
-project_longitude = ''
-project_location = ''
-project_sampleCountry = ''
-project_sampleContinent = ''
-project_depth = ''
-project_temperature = ''
-project_pH = ''
-project_salinity = ''
-
-###Library: mimarks-survey seq_meth, Library: metagenome
-project_sequencingMethod = ''
-#project_sequencingMethod = ''mimarks-survey seq_meth','seq_meth', '']
-project_dataType = ''
-#project_dataType = ''lib_type', '']
 project_link = 'http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeOverview&metagenome='
 metadata_link= 'http://metagenomics.anl.gov/metagenomics.cgi?page=DownloadMetagenome&action=download_md&filename=mgm'
 
-outputFile = open('Project_Metadata.txt', 'w')
+outputFile = open('Project_Metadata.csv', 'w')
 inputFile = open('datasetNames.txt', 'r')
 
 lines = inputFile.readlines()
@@ -67,13 +35,44 @@ for line in lines:
 	line = line + '.txt'
 	fileList.append(line)
 
-outputFile.write('project_ID\t	project_name\t	project_description\t	project_sampleFeature\t	project_sampleBiome\t' + \
-	'project_organization\t	project_PI\t	project_PI_email\t	PI_organization_url\t	project_NCBI\t	project_collectionDate\t' + \
-	'project_collectionTimeZone\t	location_coordinates\t	project_location\t	project_sampleCountry\t' + \
-	'project_sampleContinent\t	project_depth\t	project_temperature\t	project_pH\t	project_salinity\t' + \
-	'project_sequencingMethod\t	project_dataType\t	project_pubMedID\t	project_link\t 	project_metatdataLink\n')
+outputFile.write('project_ID\tproject_name\tproject_feature\tproject_sampleBiome\t' + \
+	'project_organization\tproject_PI\tproject_PI_email\tPI_organization_url\tproject_NCBI\tproject_collectionDate\t' + \
+	'project_collectionTimeZone\tlocation_coordinates\tproject_location\tproject_sampleCountry\t' + \
+	'project_sampleContinent\tproject_depth\tproject_temperature\tproject_pH\tproject_salinity\t' + \
+	'project_sequencingMethod\tproject_dataType\tproject_pubMedID\tproject_link\tproject_metatdataLink\tproject_description\n')
 
 for files in fileList:
+	#####Project
+	project_name = 'NA'
+	project_description = 'NA'
+	project_sampleFeature = 'NA'
+	project_sampleBiome= 'NA'
+	project_organization = 'NA'
+	project_organization_url = 'NA'
+	project_PI_firstName = 'NA'
+	project_PI_lastName = 'NA'
+	project_PI_email = 'NA'
+	project_PI_organization_url = 'NA'
+	project_NCBI = 'NA'
+
+	####Sample
+	project_collectionDate = 'NA'
+	project_collectionTimeZone = 'NA'
+	project_sampleSize = 'NA'
+	project_latitude = 'NA'
+	project_longitude = 'NA'
+	project_location = 'NA'
+	project_sampleCountry = 'NA'
+	project_sampleContinent = 'NA'
+	project_depth = 'NA'
+	project_temperature = 'NA'
+	project_pH = 'NA'
+	project_salinity = 'NA'
+
+	###Library: mimarks-survey seq_meth, Library: metagenome
+	project_sequencingMethod = 'NA'
+	project_dataType = 'NA'
+
 	inputF = open(files, 'r')
 	lines = inputF.readlines()
 
@@ -87,10 +86,8 @@ for files in fileList:
 				project_description = removeInput(line, 'project_description')
 			if line.startswith('project_sampleFeature'):
 				project_sampleFeature = removeInput(line, 'project_sampleFeature')
-			if line.startswith('project_sampleBiome'):
-				project_sampleBiome = removeInput(line, 'project_sampleBiome')
-			if line.startswith('project_organization') and line.startswith(project_organization_url[0]) == False and line.startswith('PI_organization_address') == False and line.startswith('PI_organization_country') == False:
-				project_organization = removeInput(line, 'project_organization')
+			if line.startswith('PI_organization') and line.startswith('PI_organization_url') == False and line.startswith('PI_organization_address') == False and line.startswith('PI_organization_country') == False:
+				project_organization = removeInput(line, 'PI_organization')
 			if line.startswith('PI_firstname'):
 				project_PI_firstName = removeInput(line, 'PI_firstname')
 			if line.startswith('PI_lastname'):
@@ -99,15 +96,16 @@ for files in fileList:
 				project_PI_email = removeInput(line, 'PI_email') 
 			if line.startswith('PI_organization_url'):
 				project_PI_organization_url = removeInput(line, 'PI_organization_url') 
+			if line.startswith('ncbi_id'):
+				project_NCBI = removeInput(line, 'ncbi_id') 
 
 		####Sample
 		if line.startswith('Sample'):
 			line = removeInput(line, 'Sample')
 			if line.startswith('feature'):
-				line = line.replace('feature', '')
-				line = str(line.lstrip())
-				line = str(line.rstrip())
-				project_feature = line
+				project_feature = removeInput(line, 'feature')
+			if line.startswith('biome'):
+				project_sampleBiome = removeInput(line, 'biome')
 			if line.startswith('collection_date'):
 				project_collectionDate = removeInput(line, 'collection_date')
 			if line.startswith('collection_timezone'):
@@ -120,6 +118,8 @@ for files in fileList:
 				project_longitude = removeInput(line, 'longitude') 
 			if line.startswith('location'):
 				project_location = removeInput(line, 'location')
+			if line.startswith('country'):
+				project_sampleCountry = removeInput(line, 'country')
 			if line.startswith('continent'):
 				project_sampleContinent = removeInput(line, 'continent')
 			if line.startswith('depth'):
@@ -128,47 +128,36 @@ for files in fileList:
 				project_temperature = removeInput(line, 'temperature')
 			if line.startswith('pH'):
 				project_pH = removeInput(line, 'pH')
-			if line.startswith('salinity') or line.startswith('misc_param'):
+			if line.startswith('salinity') or line.startswith('misc_param') and project_salinity == 'NA':
 				line = removeInput(line, 'misc_param')
 				line = removeInput(line, 'salinity')
 				project_salinity = line
 
-		if line.startswith('Enviromental Package:') or line.startswith('Sample'):
-			line = line.replace('Environmental', '')
-			line = line.replace('Sample', '')
-			line = str(line.lstrip())
-			if line.startswith('salinity') or line.startswith('misc_param'):
-				line = line.replace('misc_param', '')
-				line = str(line.lstrip())
-				line = line.replace('salinity', '')
-				line = str(line.lstrip())
-				line = str(line.rstrip())
-				project_salinity = line
+		if line.startswith('Enviromental Package:'): 
+			line = removeInput(line, 'Environmental')
+			if line.startswith('water'):
+				if line.startswith('salinity') and project_salinity == 'NA': 
+					line = removeInput(line, 'salinity')
+					project_salinity = removeInput(line, 'salinity')
 
 		###Library: mimarks-survey seq_meth, Library: metagenome
 		if line.startswith('Library: metagenome') or line.startswith('Library: mimarks-survey'):
-			line = str(line.replace('Library: metagnome', ''))
-			line = str(line.replace('Library: mimarks-survey', ''))
-			line = str(line.lstrip())
-			line = str(line.rstrip())
-			line = line.replace('\n', '')
+			line = removeInput(line, 'Library: metagnome')
+			line = removeInput(line, 'Library: mimarks-survey')
 			if line.startswith('pubmed_id'):
-				line = line.replace('pubmed_id', '')
-				line = str(line.lstrip())
-				line = str(line.rstrip())
-				project_pubMedID = line
+				project_pubMedID = removeInput(line, 'pubmed_id')
 			if line.startswith('project_sequencingMethod'):
 				project_sequencingMethod = line
 			if line.startswith('project_dataType'):
 				project_dataType = line
 
-	outputLink = str(project_link + files + '\t' + metadata_link + files + '.metadata.txt\n')
-	outputFile.write(files + '\t' + project_name + '\t' + project_description + '\t' + project_sampleFeature + '\t' + project_sampleBiome + '\t' + \
-		project_organization + '\t' +  project_PI_firstName + ' ' + project_PI_lastName + '\t' + project_PI_email + '\t' + project_PI_organization_url + '\t' + project_NCBI + '\t' + \
+	outputLink = str(project_link + files + '\t' + metadata_link + files + '.metadata.txt')
+	outputFile.write(files + '\t' + project_name + '\t' + project_feature + '\t' + project_sampleBiome + '\t' + project_organization + '\t' +  \
+		project_PI_firstName + ' ' + project_PI_lastName + '\t' + project_PI_email + '\t' + project_PI_organization_url + '\t' + project_NCBI + '\t' + \
 		project_collectionDate + '\t' + project_collectionTimeZone + '\t' + project_latitude + ',' + project_longitude + '\t' + \
 		project_location + '\t' + project_sampleCountry + '\t' + project_sampleContinent + '\t' + \
 		project_depth + '\t' + project_temperature  + '\t' + project_pH + '\t' + project_salinity + '\t' + project_sequencingMethod + '\t' + \
-		project_dataType + '\t' + project_pubMedID + '\t' + outputLink)
+		project_dataType + '\t' + project_pubMedID + '\t' + outputLink + '\t' + project_description + '\n')
 
 	inputF.close()
 
