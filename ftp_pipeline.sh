@@ -30,5 +30,6 @@ then
 fi
 }
 
+get_ftpFiles
 sh $scriptPathway/ftp_fileProcessor.sh
-
+python $scriptpathway/ftp_concatenateLines.py
