@@ -77,8 +77,6 @@ for infile in glob.glob(os.path.join(path, 'phylum_sorted_*.txt') ): #file exten
   infile = infile.replace(path, '')  #removes directory name from file name
   fileList.append(infile)
 
-print 'Printing fileList'
-print fileList
 #if os.path.exists('phyla):
 #        os.remove(outputFile)
 
