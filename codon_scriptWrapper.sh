@@ -19,32 +19,38 @@ export processors #this makes it available to other functions
 fileName_noExt=${fileName:0:-3} #e.g. 4502935.3
 export fileName_noExt
 
-if [ $processors -ne 1 ]
-then 
-	LineNumber=$(wc -l < "$fileName")
+echo "Do you want to split the files? (Y/N followed by [ENTER]:"
+read split_Response 
 
-	divider=2
-	counter=0
+if [ $split_Response = "y" ] || [ $split_Response = "Y" ] || [ $split_Response = "yes" ] || [ $split_Response = "Yes" ] 
+then
+	if [ $processors -ne 1 ]
+	then 
+		LineNumber=$(wc -l < "$fileName")
 
-	let Remainder=$((LineNumber/processors))
-	let Modulus_processor=$((LineNumber%processors))
-	let Modulus_two=$((Remainder%divider))
+		divider=2
+		counter=0
 
-	if [ $Modulus_processor -eq 0 ] && [ $Modulus_two -eq 0 ]
-	then
-	     split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
-	fi
-
-	if [ $((LineNumber%processors)) -ne 0 ] || [[ $((LineNumber%processors)) -eq 0 && $((Modulus_two)) -ne 0 ]]
-	then
-		let counter+=1
-		until [ $((LineNumber%processors)) -eq 0 ] && [ $(((LineNumber/processors)%divider)) -eq 0 ]; do
-			let counter=counter
-			let LineNumber=LineNumber+counter
-		done
-		
 		let Remainder=$((LineNumber/processors))
-	     split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
+		let Modulus_processor=$((LineNumber%processors))
+		let Modulus_two=$((Remainder%divider))
+
+		if [ $Modulus_processor -eq 0 ] && [ $Modulus_two -eq 0 ]
+		then
+		     split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
+		fi
+
+		if [ $((LineNumber%processors)) -ne 0 ] || [[ $((LineNumber%processors)) -eq 0 && $((Modulus_two)) -ne 0 ]]
+		then
+			let counter+=1
+			until [ $((LineNumber%processors)) -eq 0 ] && [ $(((LineNumber/processors)%divider)) -eq 0 ]; do
+				let counter=counter
+				let LineNumber=LineNumber+counter
+			done
+			
+			let Remainder=$((LineNumber/processors))
+		     split -l $Remainder $fileName $fileName_noExt'_' -d --additional-suffix=.fa
+		fi
 	fi
 fi
 }
