@@ -25,7 +25,6 @@ from Bio.SeqUtils import GC
 ########################FILE INFORMATION###############################
 
 arguments = sys.argv
-#print arguments
 
 originalFastaFile = arguments[1] #This is the original fasta (unsplit) file
 originalFastaFile = originalFastaFile.replace(' ', '')
@@ -33,19 +32,18 @@ PhymmBLresultsFile = arguments[2] #This is the results_03_PhymmBL... file
 PhymmBLresultsFile = PhymmBLresultsFile.replace(' ', '')
 mergedFile = arguments[3] #This will be the name of the output file
 
-#with open(fname) as f:
-#    content = f.readlines()
-
 inputResults = open(PhymmBLresultsFile, 'r')
 resultLines = inputResults.readlines() #readlines() reads in entire file at once.
 resultArray = []
 resultLineArray = []
 
 for results in resultLines:
-	resultLineArray.append(results.replace('\n', ''))
-	tempResults = results.split('\t',1)
-	results = tempResults[0]
-	resultArray.append(results)
+	if results.startswith('QUERY_ID') == False:
+		results = results.replace('\n', '')
+		resultLineArray.append(results)
+		tempResults = results.split('\t',1)
+		results = tempResults[0] #this excludes everything except the sequence id
+		resultArray.append(results)
 
 inputResults.close()
 
@@ -54,7 +52,7 @@ if os.path.exists(mergedFile):
 	os.remove(mergedFile)
 outputFile = open(mergedFile, 'a')
 
-outputFile.write('#QUERY_ID' + '\t' + 'BEST_MATCH' + '\t' + 'SCORE' + '\t' + 'GENUS' + '\t' + 'GENUS_CONF' + '\t' + 'FAMILY' + '\t' + 'FAMILY_CONF' + '\t' + 'ORDER' + '\t' + 'ORDER_CON' + '\t' + 'CLASS' + '\t' + 'CLASS_CONF' + '\t' + 'PHYLUM' + '\t' + 'PHYLUM_CONF' + '\t' + 'GC_1' + '\t' + 'GC_2' + '\t' + 'GC_3' + '\t' + 'GC_overall' + '\n')
+outputFile.write('#QUERY_ID\tBEST_MATCH\tSCORE\tGENUS\tGENUS_CONF\tFAMILY\tFAMILY_CONF\tORDER\tORDER_CON\tCLASS\tCLASS_CONF\tPHYLUM\tPHYLUM_CONF\tGC_1\tGC_2\tGC_3\tGC_overall\n')
 
 inputFasta = open(originalFastaFile, 'r')
 fastaLines = inputFasta.readlines() #readlines() reads in entire file at once.
@@ -68,17 +66,16 @@ for i in range(0, len(fastaLines) - 1): #from 0 to the number of lines in the fi
 		id_Fasta = lines.strip('>') #strip removes leading and trailing characters
 		id_Fasta = id_Fasta.strip('\n') #strip removes leading and trailing characters
 		id_Fasta = id_Fasta.strip('\s') #strip removes leading and trailing characters
-		
-		#if resultLines[count].startswith(id_Fasta):
+
 		count = resultArray.index(id_Fasta)
 		fastaLines[i+1] = fastaLines[i+1].strip('\n')
 		gc_1 = round(GC123(fastaLines[i+1])[1], 2)
 		gc_2 = round(GC123(fastaLines[i+1])[2], 2)
 		gc_3 = round(GC123(fastaLines[i+1])[3], 2)
 		gc_overall = round(GC(fastaLines[i+1]), 2)
-		outputFile.write('>' + resultLines[count].strip('\n')  + '\t' + str(gc_1) + '\t' + str(gc_2) + '\t' + str(gc_3) + '\t' + str(gc_overall) + '\n')
+		outputFile.write('>' + resultLineArray[count] + '\t' + str(gc_1) + '\t' + str(gc_2) + '\t' + str(gc_3) + '\t' + str(gc_overall) + '\n')
 		outputFile.write(fastaLines[i+1] + '\n')
 		resultArray.pop(count)
 		resultLineArray.pop(count)
-inputFasta.close()
+
 outputFile.close()
