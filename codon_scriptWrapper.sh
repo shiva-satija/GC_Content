@@ -115,28 +115,33 @@ function catFiles {
 #2. Cat all the results files together 
 #	i. Keep initial line but remove dups of QUERY_ID       BEST_MATCH      SCORE   GENUS   GENUS_CONF      FAMILY  FAMILY_CONF     ORDER   ORDER_CON       CLASS   CLASS_CONF      PHYLUM  PHYLUM_CONF     GC_1    GC_2    GC_3    GC_overall
 
-declare -a resultFiles=(`ls $outputDirectory/$resultsPrefix`) 
+echo "Do you want to concatenate the result files? (Y/N followed by [ENTER]:"
+read catFiles_Response 
+if [ $catFiles_Response = "y" ] || [ $catFiles_Response = "Y" ] || [ $catFiles_Response = "yes" ] || [ $catFiles_Response = "Yes" ] 
+	then 
+	declare -a resultFiles=(`ls $outputDirectory/$resultsPrefix`) 
 
-if [ $processors -eq 1 ]
-then 
-	cp $outputDirectory/$resultFiles ../$concat_resultFile
-fi
+	if [ $processors -eq 1 ]
+	then 
+		cp $outputDirectory/$resultFiles ../$concat_resultFile
+	fi
 
-if [ $processors -ne 1 ]
-then 
-	cd $outputDirectory
-	fileName2=$resultFiles[1]
-	lengthA=$(expr length $outputDirectory"/") #without removing the"/", it will end up in the base_fileName
-	base_fileName=${fileName2:$lengthA:-12} #the -3 removes the [x] from the name
+	if [ $processors -ne 1 ]
+	then 
+		cd $outputDirectory
+		fileName2=$resultFiles[1]
+		lengthA=$(expr length $outputDirectory"/") #without removing the"/", it will end up in the base_fileName
+		base_fileName=${fileName2:$lengthA:-12} #the -3 removes the [x] from the name
 
-	echo "QUERY_ID  BEST_MATCH     SCORE     GENUS     GENUS_CONF     FAMILY    FAMILY_CONF    ORDER     ORDER_CONF     CLASS     CLASS_CONF     PHYLUM    PHYLUM_CON" > $concat_resultFile
+		echo "QUERY_ID  BEST_MATCH     SCORE     GENUS     GENUS_CONF     FAMILY    FAMILY_CONF    ORDER     ORDER_CONF     CLASS     CLASS_CONF     PHYLUM    PHYLUM_CON" > $concat_resultFile
 
-	for i in `seq -w 00 $(($processors - 1))`; do 
-		sed 1d $base_fileName$i'_fa.txt' >> $concat_resultFile
-	done;
+		for i in `seq -w 00 $(($processors - 1))`; do 
+			sed 1d $base_fileName$i'_fa.txt' >> $concat_resultFile
+		done;
 
-	mv $concat_resultFile ../.
-	cd -
+		mv $concat_resultFile ../.
+		cd -
+	fi
 fi
 }
 #-------------------------------------------------------------------#
@@ -146,7 +151,14 @@ fi
 function Classified_Troiseme_GC {
 #Purpose: To merge classified sequences file to original fasta file into one while calculating the GC% from the 1st, 2nd, and 3rd position for sequences as well as the overal gc content. Data is saved as fasta file.
 
-python $scriptPathway/Classified_Troiseme_GC.py $fileName $concat_resultFile $outputFileName
+echo "Do you want to merge the classified files? (Y/N followed by [ENTER]:"
+read classify_Response 
+export classify_Response
+
+if [ $classify_Response = "y" ] || [ $classify_Response = "Y" ] || [ $classify_Response = "yes" ] || [ $classify_Response = "Yes" ] 
+then
+	python $scriptPathway/Classified_Troiseme_GC.py $fileName $concat_resultFile $outputFileName
+fi
 }
 #-------------------------------------------------------------------#
 
@@ -257,5 +269,9 @@ cp phyla_comparison.sh $sortedPhylumPathway/.
 
 cd $sortedPhylumPathway
 sh phyla_comparison.sh
+
+sort merged_phyla.txt  > temp.txt
+mv temp.txt merged_phyla.txt
 cd -
+
 #-------------------------------------------------------------------#
