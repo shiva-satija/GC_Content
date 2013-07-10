@@ -61,11 +61,11 @@ for files in fileList:
     if count == 0:
       #added $2>.79 5.1.2013
       #outputFile.write('awk \'$1 == \"' + phylum + '\" ' + '{rows++; sumConfidence +=$2; sumGC_1 +=$3; sumGC_2 +=$4; sumGC_3 +=$5; sumGC_overall +=$6;} END {print \"' + \
-      outputFile.write('awk \'$1 == \"' + phylum + '\"  && $2 > .79 ' + '{rows++; sumConfidence +=$2; sumGC_1 +=$3; sumGC_2 +=$4; sumGC_3 +=$5; sumGC_overall +=$6;} END {print \"' + \
-      phylum + '\", rows, sumConfidence/rows, sumGC_1/rows, sumGC_2/rows, sumGC_3/rows, sumGC_overall/rows, "' + newFile + '"}\'' +  path + '/'  + files + ' > ' +  mergedPhyla + '\n')
+      outputFile.write('awk \'$1 == \"' + phylum + '\"  && $2 > .79 ' + '{rows++; sumConfidence +=$2; sumGC_1 +=$3; sumGC_2 +=$4; sumGC_3 +=$5; sumGC_overall +=$6;} BEGIN {OFS = "\t"} END {print \"' + \
+      phylum + '\", rows, sumConfidence/rows, sumGC_1/rows, sumGC_2/rows, sumGC_3/rows, sumGC_overall/rows, "' + newFile + '"}\' ' +  path + '/'  + files + ' > ' +  mergedPhyla + '\n')
     if count != 0:
-      outputFile.write('awk \'$1 == \"' + phylum + '\" && $2 > .79 ' + '{rows++; sumConfidence +=$2; sumGC_1 +=$3; sumGC_2 +=$4; sumGC_3 +=$5; sumGC_overall +=$6;} END {print \"' + \
-      phylum + '\", rows, sumConfidence/rows, sumGC_1/rows, sumGC_2/rows, sumGC_3/rows, sumGC_overall/rows, "' + newFile + '"}\'' +  path + '/'  + files + ' >> ' +  mergedPhyla + '\n')
+      outputFile.write('awk \'$1 == \"' + phylum + '\" && $2 > .79 ' + '{rows++; sumConfidence +=$2; sumGC_1 +=$3; sumGC_2 +=$4; sumGC_3 +=$5; sumGC_overall +=$6;} BEGIN {OFS = "\t"}  END {print \"' + \
+      phylum + '\", rows, sumConfidence/rows, sumGC_1/rows, sumGC_2/rows, sumGC_3/rows, sumGC_overall/rows, "' + newFile + '"}\' ' +  path + '/'  + files + ' >> ' +  mergedPhyla + '\n')
   count+=2      
 
 outputFile.close()
