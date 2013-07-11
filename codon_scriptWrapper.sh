@@ -257,6 +257,8 @@ results3="results.03.phymmBL"
 tempRev="tempRev"
 resultsPrefix="results.03.phymmBL*.txt"
 concat_resultFile=$results3"_"$fileName
+#echo $concat_resultFile
+#echo $outputFileName
 
 moveFiles 
 catFiles 
@@ -268,10 +270,11 @@ comparePhyla
 cp phyla_comparison.sh $sortedPhylumPathway/.
 
 cd $sortedPhylumPathway
-sh phyla_comparison.sh
+sh phyla_comparison.sh > /dev/null 2>&1
+
 
 sort merged_phyla.txt  > temp.txt
 mv temp.txt merged_phyla.txt
+sed -i '1s/^/Phylum\tOccurances\tConfidernce\tGC_1\tGC_2\tGC_3\tGC_overall\tFilename\n/' merged_phyla.txt
 cd -
-
-#-------------------------------------------------------------------#
+#-----------------------------------FIN----------------------------------------------#
