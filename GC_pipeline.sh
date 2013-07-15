@@ -102,7 +102,7 @@ function moveFiles {
 
 if [ $scoreRead_Response = "y" ] || [ $scoreRead_Response = "Y" ] || [ $scoreRead_Response = "yes" ] || [ $scoreRead_Response = "Yes" ] 
 then 
-	python $scriptPathway/moveResultFiles.py $PWD $PhymmBL_directory $Environment_Directory $errFile $rawBlastOutput $rawPhymmOutput $results1 $results2 $results3 $tempRev $fileName_noExt
+	python $scriptPathway/GC_moveResultFiles.py $PWD $PhymmBL_directory $Environment_Directory $errFile $rawBlastOutput $rawPhymmOutput $results1 $results2 $results3 $tempRev $fileName_noExt
 fi
 }
 #-------------------------------------------------------------------#
@@ -148,7 +148,7 @@ fi
 
 
 #-------------------------------------------------------------------#
-function Classified_Troiseme_GC {
+function GC_Classified {
 #Purpose: To merge classified sequences file to original fasta file into one while calculating the GC% from the 1st, 2nd, and 3rd position for sequences as well as the overal gc content. Data is saved as fasta file.
 
 echo "Do you want to merge the classified files? (Y/N followed by [ENTER]:"
@@ -157,7 +157,7 @@ export classify_Response
 
 if [ $classify_Response = "y" ] || [ $classify_Response = "Y" ] || [ $classify_Response = "yes" ] || [ $classify_Response = "Yes" ] 
 then
-	python $scriptPathway/Classified_Troiseme_GC.py $fileName $concat_resultFile $outputFileName
+	python $scriptPathway/GC_Classified.py $fileName $concat_resultFile $outputFileName
 fi
 }
 #-------------------------------------------------------------------#
@@ -208,7 +208,7 @@ function uniquePhyla {
 #"unique_phyla.txt" (in Sorted_Phylum directory)
 # go through text file to ensure unique names exist only
 
-awk '{ print $1}' $sortedPhylumFile | uniq > unique_phyla.txt
+awk '{print $1}' $sortedPhylumFile | uniq > unique_phyla.txt
 cat unique_phyla.txt $sortedPhylumPathway/unique_phyla.txt > $sortedPhylumPathway/temp_unique_phyla.txt
 sort $sortedPhylumPathway/temp_unique_phyla.txt > $sortedPhylumPathway/sort_temp_unique_phyla.txt
 uniq $sortedPhylumPathway/sort_temp_unique_phyla.txt > $sortedPhylumPathway/unique_phyla.txt
@@ -219,7 +219,7 @@ rm  $sortedPhylumPathway/temp_unique_phyla.txt
 
 
 #-------------------------------------------------------------------#
-function comparePhyla {
+function GC_comparePhyla {
 # Given: 
 # Acidobacteria 0.711 55.56 41.18 70.59 54.72
 # Acidobacteria 0.809 52.17 73.91 63.64 62.32
@@ -257,21 +257,20 @@ results3="results.03.phymmBL"
 tempRev="tempRev"
 resultsPrefix="results.03.phymmBL*.txt"
 concat_resultFile=$results3"_"$fileName
-#echo $concat_resultFile
-#echo $outputFileName
+echo $concat_resultFile
+echo $outputFileName
 
 moveFiles 
 catFiles 
-Classified_Troiseme_GC 
+GC_Classified 
 checkFileLength 
 awkCommand
 uniquePhyla 
-comparePhyla
+GC_comparePhyla
 cp phyla_comparison.sh $sortedPhylumPathway/.
 
 cd $sortedPhylumPathway
 sh phyla_comparison.sh > /dev/null 2>&1
-
 
 sort merged_phyla.txt  > temp.txt
 mv temp.txt merged_phyla.txt
